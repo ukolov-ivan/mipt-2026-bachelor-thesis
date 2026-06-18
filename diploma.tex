@@ -96,7 +96,7 @@
 \frac{\partial u}{\partial t} + \operatorname{div}(\vec{a}\,u) = 0,
 \label{eq:transport_general}
 \end{equation}
-где $u = u(x,y,t)$ --- искомая функция, $\vec{a}$ --- вектор скорости переноса.
+где $u = u(x,y,t)$ --- искомая скалярная функция, $\vec{a}$ --- вектор скорости переноса.
 
 В одномерном случае при постоянной скорости $a = \mathrm{const} > 0$ уравнение~\eqref{eq:transport_general} принимает вид:
 \begin{equation}
@@ -140,13 +140,83 @@ u_i^{n+1} = \frac{1}{2}(u_{i+1}^n + u_{i-1}^n)
 \end{equation*}
 где $W^n_{i\pm1/2}$~--- численные потоки, определённые соответствующим образом.
 
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.2,
+    cell/.style={draw, minimum width=1.8cm, minimum height=0.8cm, fill=blue!5},
+    border cell/.style={draw, minimum width=1.8cm, minimum height=0.8cm, fill=blue!5, opacity=0.4},
+    flux/.style={thick, ->, >=stealth}]
+
+    % Cells
+    \node[border cell] (im2) at (-2,0) {\small $u_{i-2}^n$};
+    \node[cell]        (im1) at ( 0,0) {\small $u_{i-1}^n$};
+    \node[cell]        (i)   at ( 2,0) {\small $u_i^n$};
+    \node[cell]        (ip1) at ( 4,0) {\small $u_{i+1}^n$};
+    \node[border cell] (ip2) at ( 6,0) {\small $u_{i+2}^n$};
+
+    % Cell boundaries (dashed)
+    \draw[dashed, gray] (-0.9,-0.5) -- (-0.9,0.9) node[above] {\footnotesize $x_{i-3/2}$};
+    \draw[dashed, gray] ( 0.9,-0.5) -- ( 0.9,0.9) node[above] {\footnotesize $x_{i-1/2}$};
+    \draw[dashed, gray] ( 2.9,-0.5) -- ( 2.9,0.9) node[above] {\footnotesize $x_{i+1/2}$};
+    \draw[dashed, gray] ( 4.9,-0.5) -- ( 4.9,0.9) node[above] {\footnotesize $x_{i+3/2}$};
+
+    % Fluxes on the boundaries
+    \draw[flux] (0.9,-0.3) -- (0.9,-0.7) node[below] {$W_{i-1/2}^n$};
+    \draw[flux] (2.9,-0.3) -- (2.9,-0.7) node[below] {$W_{i+1/2}^n$};
+
+    % Arrows within cells showing flow direction (a > 0)
+    \draw[->, blue!40, thick] (-0.3,0.2) -- (0.3,0.2);
+    \draw[->, blue!40, thick] ( 1.7,0.2) -- (2.3,0.2);
+    \draw[->, blue!40, thick] ( 3.7,0.2) -- (4.3,0.2);
+
+    % Labels
+    \node at ( 2.0, 0.6) {\footnotesize Ячейка $i$};
+
+    % Equation of conservation
+    % \node[text width=4cm, align=center, anchor=west] at (5.5, 0.0) {
+    %     \footnotesize $u_i^{n+1} = u_i^n$ \\
+    %     \footnotesize $-\, \frac{\Delta t}{\Delta x}\bigl(W_{i+1/2} - W_{i-1/2}\bigr)$
+    % };
+
+    % Braces
+    \draw[decorate, decoration={brace, amplitude=4pt}] 
+        (0.9, -1.3) -- (-0.9, -1.3) node[midway, below=5pt] {\footnotesize втекает};
+    \draw[decorate, decoration={brace, amplitude=4pt}] 
+        (2.9, -1.3) -- (0.9, -1.3) node[midway, below=5pt] {\footnotesize вытекает};
+
+\end{tikzpicture}
+\caption{Пространственная сетка и положение численных потоков. Значения $u_i^n$ хранятся в центрах ячеек; потоки $W_{i\pm1/2}^n$ вычисляются на гранях ячейки. Для $a > 0$ поток втекает в $u_i^n$ через левую грань и вытекает через правую.}
+\label{fig:fluxes}
+\end{figure}
+
 \section{Модификация с параметром}
 Введём параметр $\sigma$ и модифицируем схему~\eqref{eq:lax-friedrichs}:
 \begin{equation*}
 u_i^{n+1} = \biggl[\,\sigma u_i^n 
             + (1-\sigma)\frac{u_{i+1}^n + u_{i-1}^n}{2}\biggr]
-            - \frac{a\Delta t}{\Delta x}\bigl(W^n_{i+1/2} - W^n_{i-1/2}\bigr).
+            - \frac{a\Delta t}{\Delta x}\bigl(W^n_{i+1/2} - W^n_{i-1/2}\bigr),
+\label{eq:modified}
 \end{equation*}
+
+где численный поток имеет вид
+
+\begin{equation}
+W^n_{i+1/2} = \frac{u_{i+1}^n + u_i^n}{2} 
+              - \frac{a\Delta t}{2\Delta x}\,(u_{i+1}^n - u_i^n).
+\label{eq:flux-def}
+\end{equation}
+
+Проведём подстановку \eqref{eq:flux-def} в уравнение~\eqref{eq:modified}. Для разности потоков получаем:
+\begin{align*}
+W^n_{i+1/2} - W^n_{i-1/2} 
+&= \left[ \frac{u_{i+1}^n + u_i^n}{2} - \frac{a\Delta t}{2\Delta x}\,(u_{i+1}^n - u_i^n) \right] - \left[ \frac{u_i^n + u_{i-1}^n}{2} - \frac{a\Delta t}{2\Delta x}\,(u_i^n - u_{i-1}^n) \right] \\[4pt]
+&= \frac{u_{i+1}^n - u_{i-1}^n}{2} 
+   - \frac{a\Delta t}{2\Delta x}\,
+     \bigl[ (u_{i+1}^n - u_i^n) - (u_i^n - u_{i-1}^n) \bigr] \\[4pt]
+&= \frac{u_{i+1}^n - u_{i-1}^n}{2} 
+   - \frac{a\Delta t}{2\Delta x}\,
+     \bigl( u_{i+1}^n - 2u_i^n + u_{i-1}^n \bigr).
+\end{align*}
 
 После раскрытия потоков разностное уравнение принимает форму:
 
@@ -162,18 +232,17 @@ u_i^{n+1} = \biggl[\,\sigma u_i^n
 \textbf{Замечание.} При $\sigma=1$ схема~\eqref{eq:modified-expanded} переходит в схему Лакса--Вендроффа второго порядка.
 
 \section{Анализ ошибки аппроксимации}
-Разложим значения в узлах по формуле Тейлора относительно точки $(x_i,t^n)$. Если решение достаточно гладкое, получаем дифференциальное приближение схемы~\eqref{eq:modified-expanded} (опустив индексы для простоты):
+Разложим значения в узлах по формуле Тейлора относительно точки $(x_i,t^n)$. Если решение достаточно гладкое, получаем дифференциальное приближение схемы~\eqref{eq:modified-expanded} (индексы в записи опущены для простоты):
 
 \begin{dmath}
 u^{n + 1} = \input{src/scheme-taylor.tex} + \ldots,
-\label{eq:TE}
 \end{dmath}
 
 откуда можно выделить члены ошибки
 
 \begin{dmath}
 u_i^{n + 1} - u(x_i, t^{n + 1}) = \input{src/scheme-taylor-error.tex} + \ldots.
-\label{eq:TE}
+\label{eq:scheme-taylor-error}
 \end{dmath}
 
 \section{Повышение порядка схемы}
@@ -190,10 +259,10 @@ u_{i\pm1} &= u_i \pm \Delta x\,u_x' + \frac{\Delta x^2}{2}u_{xx}'' \pm \frac{\De
 u_{i\pm2} &= u_i \pm 2\Delta x\,u_x' + \frac{(2\Delta x)^2}{2}u_{xx}'' \pm \frac{(2\Delta x)^3}{6}u_{xxx}''' + \frac{(2\Delta x)^4}{24}u_{xxxx} + \dots,
 \end{aligned}
 \end{equation*}
-и подставляя~\eqref{eq:stencil} с учётом структуры ошибки в~\eqref{eq:TE}, мы приходим к системе линейных уравнений относительно коэффициентов $A,\dots,E$. Эквивалентная матричная запись системы после сокращения параметров (вида $\Delta x^k/k!$) имеет вид:
+и подставляя~\eqref{eq:stencil} с учётом структуры ошибки в~\eqref{eq:scheme-taylor-error}, мы приходим к системе линейных уравнений относительно коэффициентов $A,\dots,E$. Эквивалентная матричная запись системы после сокращения параметров (вида $\Delta x^k/k!$) имеет вид:
 % TODO -- переписать систему как расширенную матрицу.
 \begin{equation*}
-\input{./src/taylor-coefficients-system.tex}
+\input{./src/taylor-coefficients-system.tex}.
 \end{equation*}
 Данная система имеет единственное решение, параметризованное величиной $\sigma$, так как матрица коэффициентов является матрицей Вандермонда с попарно различными узлами.
 
@@ -206,9 +275,14 @@ u_i^{n+1} =
 \end{dmath}
 где $\nu = a\Delta t/\Delta x$~--- число Куранта.  
 
-Расписав дифференциальное приближение, можно проверить, что главный член ошибки аппроксимации этой схемы даётся выражением
+Расписав дифференциальное приближение, можно найти ошибку
+\begin{dmath*}
+u_i^{n + 1} - u(x_i, t^{n + 1}) = \input{./src/scheme-corrected-error-taylor.tex} + \ldots
+\end{dmath*}
+
+и заметить, что главный член ошибки аппроксимации этой схемы соответственно даётся выражением
 \begin{equation}
-\input{./src/principal-error-term.tex}
+\input{./src/principal-error-term.tex}.
 \label{eq:principal-error-term}
 \end{equation}
 Таким образом, достигается высокий (третий) порядок аппроксимации по пространству при выполнении условия устойчивости и подходящем выборе параметра $\sigma$.
@@ -222,31 +296,27 @@ u_i^{n+1} =
 G_{\sigma}(\theta, \nu) = \frac{u_j^{n+1}}{u_j^n}\Big|_{\,u_j^n = e^{i j\theta}}.
 \end{equation*}
 
-Ввиду громоздкости преобразований и аналитических выражений использовались символьные вычисления с помощью СКА, а некоторые выкладки приведены в общем виде для подобных схем на симметричных шаблонах.
+Ввиду громоздкости преобразований и аналитических выражений использовались символьные вычисления с помощью СКА, а некоторые выкладки приведены в общем виде для подобных параметрических схем на симметричных шаблонах.
 
 \section{Множитель перехода}
 Подстановка гармоники в разностную схему~\eqref{eq:scheme-cfl-form-stencil-form} даёт выражение
 
-% \begin{align}
-% \begin{autobreak}
-% \input{./src/amplification-factor.tex}
-% \end{autobreak}
-% \label{eq:amplification-factor}
-% \end{align}
-
 \begin{dmath*}
 G_{\sigma}(\theta,\nu) =
-\input{./src/amplification-factor.tex}
-,
+\input{./src/amplification-factor.tex}.
 \end{dmath*}
 
-где $\nu = a\Delta t/\Delta x$~--- число Куранта.
-
-Квадрат модуля множителя перехода $|G|^2$ имеет вид:
+Квадрат модуля множителя перехода $|G|^2$ тогда имеет вид:
 \begin{dmath*}
-% \vert G\vert ^2 = \\
+% Fails to break. Maybe try
+%   \begin{align}
+%   \begin{autobreak}
+%
+% \vert G\vert ^2 =
 \input{./src/amplification-factor-mod-squared.tex}.
 \end{dmath*}
+
+На рис.~\ref{fig:amplification-factor-parameter-profile} показана зависимость $|G|^2$ от волнового числа $\theta$ при различных значениях параметра $\sigma$, а на рис.~\ref{fig:extremal-paramter-amplification-factor-parameter-profile}~--- поведение значений $|G|^2$ при более <<экстремальных>> значениях $\sigma \approx 1$, $\sigma > 1$. Для практических целей мы ограничиваемся $\nu, \sigma \in [0, 1]$, но такие визуализации позволяют лучше понять поведение множителя перехода.
 
 \section{Условие устойчивости}
 Схема устойчива по фон~Нейману тогда и только тогда, когда
@@ -259,8 +329,6 @@ G_{\sigma}(\theta,\nu) =
 \max_{\theta\in[0,2\pi]} |G_{\sigma}(\theta,\nu)|^2 \le 1.
 \]
 Таким образом, задача сводится к нахождению области в пространстве параметров $(\nu,\sigma)$, где выполняется~\eqref{eq:stability-condition}.
-
-На рис.~\ref{fig:amplification-factor-parameter-profile} показана зависимость $|G|^2$ от волнового числа $\theta$ при различных значениях параметра $\sigma$, а на рис.~\ref{fig:extremal-paramter-amplification-factor-parameter-profile}~--- поведение значений $|G|^2$ при более <<экстремальных>> значениях $\sigma \approx 1$, $\sigma > 1$. Для практических целей мы ограничиваемся $\nu, \sigma \in [0, 1]$, но такие визуализации позволяют лучше понять поведение множителя перехода.
 
 \begin{figure}[ht]
 \centering
