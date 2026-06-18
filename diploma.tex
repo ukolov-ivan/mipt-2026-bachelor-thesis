@@ -1,4 +1,4 @@
-\documentclass[12pt]{article}
+\documentclass[14pt]{report}
 
 % Настройки для поддержки русского языка
 \usepackage[T2A]{fontenc}
@@ -8,17 +8,40 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{hyperref}
-
 \usepackage{graphicx}
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
 \usepgfplotslibrary{groupplots}
 \usetikzlibrary{calc}
 \pgfplotsset{width=15cm,compat=1.18}
-
 \usepackage{booktabs}
 \usepackage{autobreak}
 \usepackage{breqn}
+
+% Поля
+\usepackage[lmargin=30mm, rmargin=15mm, tmargin=20mm, bmargin=20mm]{geometry}
+
+% Межстрочный интервал 1.5
+\usepackage{setspace}
+\onehalfspacing
+
+% Абзацный отступ 1.25 см
+\usepackage{indentfirst}
+\setlength{\parindent}{1.25cm}
+
+% Шрифт Times New Roman (имитация для pdflatex)
+\usepackage{mathptmx}
+
+% Выравнивание по ширине
+\usepackage{ragged2e}
+\AtBeginDocument{\justifying}
+
+% Заголовки по центру, строчные (кроме первой прописной) – для report:
+\usepackage{titlesec}
+\titleformat{\chapter}{\normalfont\bfseries}{\thechapter.}{1em}{\Large}
+\titleformat{\section}{\centering\normalfont}{\thesection.}{1em}{\Large}
+\titleformat{\subsection}{\centering\normalfont\large}{}{0pt}{}
+\titleformat{\subsubsection}{\centering\normalfont\normalsize}{}{0pt}{}
 
 
 % See https://www.overleaf.com/learn/latex/Pgfplots_package#Reducing_compilation_time
@@ -50,9 +73,10 @@
 Численные эксперименты демонстрируют эффективность предложенных методов как на гладких, так и на разрывных решениях.
 \end{abstract}
 
+\tableofcontents
 
 
-\section{Введение}
+\chapter{Введение}
 
 Численное решение уравнений гиперболического типа, в частности, уравнения переноса, является фундаментальной задачей вычислительной математики с многочисленными приложениями в механике жидкости и газа, теории переноса излучения, моделировании процессов распространения примесей и других областях.
 
@@ -60,9 +84,9 @@
 
 В связи с этим представляет интерес разработка численного метода, дающего монотонные решения с практически приемлемой точностью. В настоящей работе предлагается подход, основанный на параметрической модификации классической схемы Лакса-Фридрихса с последующей монотонизацией. Введение параметра $\sigma$ позволяет непрерывно варьировать диссипативные свойства схемы. Повышение порядка аппроксимации достигается за счет коррекции старших членов ошибки на расширенном пятиточечном шаблоне, а монотонность обеспечивается специальными процедурами адаптивной искусственной вязкости и гибридизации.
 
-Структура работы следующая. В разделе~\ref{sec:problem} формулируется постановка задачи. Раздел~\ref{sec:scheme} посвящен построению модифицированной разностной схемы и определению корректирующих коэффициентов. В разделе~\ref{sec:stability-analysis} проводится детальный анализ устойчивости методом фон Неймана. Раздел~\ref{sec:approximation} содержит исследование порядка аппроксимации. В разделе~\ref{sec:monotonization} описываются методы монотонизации схемы для подавления осцилляций. Заключение суммирует полученные результаты.
+Структура работы следующая. В разделе~\ref{sec:problem} формулируется постановка задачи. Раздел~\ref{sec:scheme} посвящен построению модифицированной разностной схемы и определению корректирующих коэффициентов. В разделе~\ref{sec:stability-analysis} проводится детальный анализ устойчивости методом фон Неймана. Раздел~\ref{sec:convergence-analysis} содержит исследование порядка аппроксимации. В разделе~\ref{sec:monotonization} описываются методы монотонизации схемы для подавления осцилляций. Заключение суммирует полученные результаты.
 
-\section{Постановка задачи}
+\chapter{Постановка задачи}
 \label{sec:problem}
 
 Рассматривается уравнение переноса в общем виде на прямоугольной области:
@@ -90,7 +114,7 @@ u(x,t) = u_0(x - at).
 \end{equation*}
 
 % ===================
-\section{Построение разностной схемы}
+\chapter{Построение разностной схемы}
 \label{sec:scheme}
 
 Введём на рассматриваемой области $[0,L]\times[0,T]$ равномерную пространственно-временн\'{у}ю сетку
@@ -100,7 +124,7 @@ t^n = n\Delta t,\quad n=0,\dots,N_t,
 \end{equation*}
 где $\Delta x = L/N_x$, $\Delta t = T/N_t$, и будем обозначать $u_i^n \approx u(x_i,t^n)$.
 
-\subsection{Базовый метод Лакса--Фридрихса}
+\section{Базовый метод Лакса--Фридрихса}
 Классическая схема Лакса--Фридрихса имеет вид:
 \begin{equation}
 u_i^{n+1} = \frac{1}{2}(u_{i+1}^n + u_{i-1}^n) 
@@ -114,7 +138,7 @@ u_i^{n+1} = \frac{1}{2}(u_{i+1}^n + u_{i-1}^n)
 \end{equation*}
 где $W^n_{i\pm1/2}$~--- численные потоки, определённые соответствующим образом.
 
-\subsection{Модификация с параметром}
+\section{Модификация с параметром}
 Введём параметр $\sigma$ и модифицируем схему~\eqref{eq:lax-friedrichs}:
 \begin{equation*}
 u_i^{n+1} = \biggl[\,\sigma u_i^n 
@@ -130,13 +154,13 @@ u_i^{n+1} = \biggl[\,\sigma u_i^n
             - a\Delta t\,\frac{u_{i+1}^n - u_{i-1}^n}{2\Delta x}
             + \frac{a^2\Delta t^2}{2}\,
               \frac{u_{i+1}^n - 2u_i^n + u_{i-1}^n}{\Delta x^2}.
-\label{eq:modified_expanded}
+\label{eq:modified-expanded}
 \end{equation}
 
-\textbf{Замечание.} При $\sigma=1$ схема~\eqref{eq:modified_expanded} переходит в схему Лакса--Вендроффа второго порядка.
+\textbf{Замечание.} При $\sigma=1$ схема~\eqref{eq:modified-expanded} переходит в схему Лакса--Вендроффа второго порядка.
 
-\subsection{Анализ ошибки аппроксимации}
-Разложим значения в узлах по формуле Тейлора относительно точки $(x_i,t^n)$. Если решение достаточно гладкое, получаем дифференциальное приближение схемы~\eqref{eq:modified_expanded}:
+\section{Анализ ошибки аппроксимации}
+Разложим значения в узлах по формуле Тейлора относительно точки $(x_i,t^n)$. Если решение достаточно гладкое, получаем дифференциальное приближение схемы~\eqref{eq:modified-expanded}:
 
 \begin{dmath}
 u^{n + 1} = \input{src/scheme-taylor.tex} + \ldots,
@@ -148,7 +172,7 @@ u^{n + 1} = \input{src/scheme-taylor.tex} + \ldots,
 % Здесь нижние индексы $x$ обозначают частные производные по пространству в узле $(i,n)$. 
 % Старший ошибочный член пропорционален третьей производной $u_{xxx}$ и имеет порядок $O(\Delta x^2,\Delta t)$ в зависимости от соотношения шагов.
 
-\subsection{Повышение порядка схемы}
+\section{Повышение порядка схемы}
 Чтобы повысить порядок аппроксимации, необходимо аннулировать старшие члены ошибки. Для этого аппроксимируем третью пространственную производную на расширенном пятиточечном шаблоне:
 \begin{equation}
 \left(\frac{\partial^3 u}{\partial x^3}\right)_i
@@ -169,7 +193,7 @@ u_{i\pm2} &= u_i \pm 2\Delta x\,u_x' + \frac{(2\Delta x)^2}{2}u_{xx}'' \pm \frac
 \end{equation*}
 Данная система имеет единственное решение, параметризованное величиной $\sigma$, так как матрица коэффициентов является матрицей Вандермонда с попарно различными узлами.
 
-\subsection{Итоговая разностная схема}
+\section{Итоговая разностная схема}
 Выражая коэффициенты $A,\dots,E$ и подставляя полученный член в разностное уравнение, получаем окончательный вид схемы
 \begin{dmath}
 u_i^{n+1} =
@@ -186,7 +210,7 @@ u_i^{n+1} =
 Таким образом, достигается высокий (третий) порядок аппроксимации по пространству при выполнении условия устойчивости и подходящем выборе параметра $\sigma$.
 
 % =================
-\section{Исследование устойчивости}
+\chapter{Исследование устойчивости}
 \label{sec:stability-analysis}
 
 Анализ устойчивости проводится методом фон~Неймана. Гармоническое возмущение на $n$-м временн\'{о}м слое записывается как $u_j^n = \lambda^n e^{i j\theta}$, где $\theta = k\Delta x$~--- волновое число, а $\lambda$~--- множитель перехода. Множитель перехода $G_{\sigma}(\theta,\nu)$ определяется отношением амплитуд гармоники на соседних слоях:
@@ -196,7 +220,7 @@ G_{\sigma}(\theta, \nu) = \frac{u_j^{n+1}}{u_j^n}\Big|_{\,u_j^n = e^{i j\theta}}
 
 Ввиду громоздкости преобразований и аналитических выражений использовались символьные вычисления с помощью CAS, а некоторые выкладки приведены в общем виде для подобных схем на симметричных шаблонах.
 
-\subsection{Множитель перехода}
+\section{Множитель перехода}
 Подстановка гармоники в разностную схему~\eqref{eq:scheme-cfl-form-stencil-form} даёт выражение
 
 % \begin{align}
@@ -207,17 +231,20 @@ G_{\sigma}(\theta, \nu) = \frac{u_j^{n+1}}{u_j^n}\Big|_{\,u_j^n = e^{i j\theta}}
 % \end{align}
 
 \begin{dmath*}
+G_{\sigma}(\theta,\nu) =
 \input{./src/amplification-factor.tex}
+,
 \end{dmath*}
 
 где $\nu = a\Delta t/\Delta x$~--- число Куранта.
 
 Квадрат модуля множителя перехода $|G|^2$ имеет вид:
 \begin{dmath*}
-\input{./src/amplification-factor-mod-squared.tex}
+|G_{\sigma}(\theta,\nu)|^2 =
+\input{./src/amplification-factor-mod-squared.tex}.
 \end{dmath*}
 
-\subsection{Условие устойчивости}
+\section{Условие устойчивости}
 Схема устойчива по фон~Нейману тогда и только тогда, когда
 \begin{equation}
 |G_{\sigma}(\theta,\nu)|^2 \le 1 \quad \forall\,\theta\in[0,2\pi].
@@ -241,12 +268,11 @@ G_{\sigma}(\theta, \nu) = \frac{u_j^{n+1}}{u_j^n}\Big|_{\,u_j^n = e^{i j\theta}}
 \begin{figure}[ht]
 \centering
 \scalebox{.4}{\input{src/amplification-factor-parameter-profile-extreme.pgf}}
-% \includegraphics[width=\textwidth]{./src/extremal-paramter-amplification-factor-parameter-profile.}
 \caption{Значения $|G|^2$ для больш\'{и}х $\sigma$.}
 \label{fig:extremal-paramter-amplification-factor-parameter-profile}
 \end{figure}
 
-\subsection{Анализ границы устойчивости}
+\section{Анализ границы устойчивости}
 
 При проведении анализа по методу фон Неймана подстановка сеточных гармоник в разностную схему даёт множители $e^{\pm ik\theta}$. Для схем на симметричных шаблонах после вычисления $|G|^2 = G \cdot \overline{G}$ коэффициенты при $e^{i(k - m)\theta}$ и $e^{i(m - k)\theta}$, где $k, m \in \{-2, \dots, 2\}$, совпадают, в результате чего появляются выражения, состоящие из косинусов кратных углов:
 
@@ -314,7 +340,7 @@ P(-1,\nu)-1 =
 \end{equation}
 
 % TODO: Почему?
-В общем случае, для симметричных шаблонов $x = 1$ ($\theta = 0$) является корнем $P - 1$ (вероятно, кратным). Зачастую ожидаемо что такие полиномы имеют простое представление в силу работы над $\mathbb{Q}[\sigma]$. 
+В общем случае, для симметричных шаблонов $x = 1$ ($\theta = 0$) является корнем $P - 1$ (вероятно, кратным). Зачастую ожидаемо, что такие полиномы имеют простое представление в силу работы над $\mathbb{Q}[\sigma]$. 
 
 Дискриминант полинома $P(x,\nu)-1$ по переменной $x$ (с точностью до исключения кратных константных корней) записывается как
 \begin{dmath}
@@ -361,39 +387,31 @@ P(-1,\nu)-1 =
 
 Необходимые для этого операции поддерживаются современными CAS.
 
-\subsection{Итоговое ограничение на число Куранта}
+\section{Итоговое ограничение на число Куранта}
 % TODO -- correct this
 Объединяя все положительные критические значения, находим наименьшее из них, определяющее границу устойчивости $\nu_{\max}(\sigma)$. Результирующая кривая изображена на рис.~\ref{fig:cfl-bound-vs-parameter}.
 
-% TODO: move
-\input{src/cfl-bound-vs-parameter.tikz}
-
 \begin{figure}[ht]
-\centering
-% \input{src/cfl-bound-vs-parameter.tikz}
-% \includegraphics[width=\textwidth]{./src/cfl-bound-vs-parameter.png}
-\caption{Максимально допустимое число Куранта $\nu_{\max}$ как функция параметра $\sigma$.}
-\label{fig:cfl-bound-vs-parameter}
+    \centering
+    \input{src/cfl-bound-vs-parameter.tikz}
+    \caption{Максимально допустимое число Куранта $\nu_{\max}$ как функция параметра $\sigma$.}
+    \label{fig:cfl-bound-vs-parameter}
 \end{figure}
 
 Таким образом, схема~\eqref{eq:scheme-cfl-form-stencil-form} устойчива при выполнении условия $\nu \le \nu_{\max}(\sigma)$. При выборе $\sigma$, например, в диапазоне $[0.5,\,1.0]$, максимальное допустимое число Куранта оказывается близким к единице, что сохраняет высокую эффективность метода.
 
 % =============
 
-% TODO: Add caption and generic text
-
-\subsection{Диссипация и дисперсия}
+\section{Диссипация и дисперсия}
 
 На рис.~\ref{fig:dissipation-dispersion-profile} представлены зависимости модуля коэффициента перехода $|G|$ (амплитудная диссипация) и относительной фазовой ошибки (дисперсия) от безразмерного волнового числа $\theta = k\Delta x$ на отрезке $[0, \pi]$.
 
-\input{src/dissipation-dispersion-profile.tikz}
 
 \begin{figure}[ht]
-\centering
-% Hangs for some reason
-% \includegraphics[width=\textwidth]{./src/dissipation-dispersion-profile.png}
-\caption{Диссипативные и дисперсионные свойства схемы при $\sigma = 0.5$ для различных значений числа Куранта $\nu$. Слева: модуль коэффициента перехода $|G|$ (диссипация). Справа: относительная фазовая ошибка (дисперсия).}
-\label{fig:dissipation-dispersion-profile}
+    \centering
+    \input{src/dissipation-dispersion-profile.tikz}
+    \caption{Диссипативные и дисперсионные свойства схемы при $\sigma = 0.5$ для различных значений числа Куранта $\nu$. Слева: модуль коэффициента перехода $|G|$ (диссипация). Справа: относительная фазовая ошибка (дисперсия).}
+    \label{fig:dissipation-dispersion-profile}
 \end{figure}
 
 Левый график иллюстрирует диссипативные свойства численного метода. В длинноволновом пределе ($\theta \to 0$) для всех рассмотренных чисел Куранта выполняется условие $|G| \to 1$, что подтверждает аппроксимацию и согласованность схемы. На коротких волнах ($\theta \to \pi$) проявляется схемная вязкость, величина которой существенно зависит от $\nu$. Наибольшим диссипативным эффектом обладает схема при "средних" значениях $\nu$: модуль $|G|$ падает практически до нуля на высоких частотах, что способствует эффективному подавлению нефизичных коротковолновых осцилляций. Особого внимания заслуживает случай большего $\nu = 0.9$: на коротких волнах кривая $|G|$ превышает единицу, что наглядно демонстрирует потерю устойчивости схемы при превышении критического числа Куранта $\nu_{\max}$ для данного $\sigma$, что также подтверждает теоретические результататы.
@@ -402,7 +420,7 @@ P(-1,\nu)-1 =
 
 Таким образом, анализ показывает, что выбор числа Куранта определяет не только устойчивость, но и характер ошибок схемы. Например, при $\sigma = 0.5$ "средние" значения $\nu$ обеспечивает отличные дисперсионные свойства для длинных и средних волн в сочетании с сильным диссипативным подавлением коротковолнового шума.
 
-\section{Исследование порядка аппроксимации схемы}
+\chapter{Исследование порядка аппроксимации схемы}
 \label{sec:convergence-analysis}
 
 % TODO: переименовать глобальную в локальную
@@ -440,14 +458,13 @@ $$||e||_{L_p} = (\Delta x\sum_{i = 1}^n {e_i^p})^{1/p}$$
     \input{src/convergence-le-diminishing-parameter.tikz}
 
     % TODO: change descr
-    \caption{Зависимость локальной ошибки от шага сетки $\Delta x$ в двойном логарифмическом масштабе при стремлении старшего члена ошиьки к 0.}
+    \caption{Зависимость локальной ошибки от шага сетки $\Delta x$ в двойном логарифмическом масштабе при стремлении старшего члена ошибки к 0 ($\sigma \to 1$).}
     \label{fig:convergence-le-diminishing-parameter}
 \end{figure}
 
 \begin{figure}[h]
 \centering
     \input{src/convergence-ge.tikz}
-    % \includegraphics[width=1.0\textwidth]{./src/convergence-ge.png}
     \caption{Глобальная ошибка в нормах $L_1$, $L_2$ и $L_\infty$ в конечный момент времени. Наклоны прямых для предлагаемой схемы соответствуют третьему порядку сходимости, в то время как схема Лакса–Вендроффа даёт второй порядок.}
     \label{convergence-ge}
 \end{figure}
@@ -464,7 +481,7 @@ $$||e||_{L_p} = (\Delta x\sum_{i = 1}^n {e_i^p})^{1/p}$$
 
 Рисунок~\ref{fig:convergence-le} подтверждает четвёртый локальный порядок: при уменьшении $\Delta x$ локальная ошибка убывает пропорционально $\Delta x^4$. Рисунок~\ref{convergence-ge} демонстрирует, что интегральная ошибка во всех трёх нормах ($L_1$, $L_2$, $L_\infty$) уменьшается как $O(\Delta x^3)$, что полностью согласуется с теоретическим ожиданием $O(\Delta x^4 / \Delta t) = O(\Delta x^3)$ при $\Delta t \propto \Delta x$. Таким образом, предложенная схема обладает на порядок более высокой скоростью сходимости по сравнению со стандартным методом Лакса–Вендроффа, достигая глобального третьего порядка точности.
 
-\section{Монотонизация схемы}
+\chapter{Монотонизация схемы}
 \label{sec:monotonization}
 
 Схемы высокого порядка, подобные построенной в разделе~\ref{sec:scheme} не могут являться монотонными по теореме Годунова ~\cite{godunov1954} и склонны порождать нефизичные осцилляции (явление Гиббса) в окрестности резких градиентов и разрывов решения. На рисунке~\ref{fig:scheme-comparison-discontinuous} можно увидеть сравнение со схемой Русанова~\cite{rusanov1970}
@@ -479,13 +496,12 @@ u_i^{n + 1} =
 \begin{figure}[ht]
 \centering
 \input{src/scheme-comparison-discontinuous.tikz}
-% \includegraphics[width=1.0\textwidth]{./src/scheme-comparison-discontinuous.png}
 \caption{Сравнение решений разными методами на разрывном шаблоне.}
 \label{fig:scheme-comparison-discontinuous}
 \end{figure}
 
 
-\subsection{Адаптивная искусственная вязкость}
+\section{Адаптивная искусственная вязкость}
 
 Идея, впервые предложенная Дж. фон Нейманом и Р. Рихтмайером в \cite{vonneumann1950}, состоит во введении в уравнение локального диссипативного слагаемого, включаемого только там, где это необходимо для подавления осцилляций. Модифицированное уравнение имеет вид
 \begin{equation}
@@ -517,7 +533,6 @@ u_i^{n + 1} =
 
 \begin{figure}[h]
 \centering
-% \includegraphics[width=1.0\textwidth]{./src/adaptive-artificial-viscosity-coeff-bounds.png}
 \input{src/adaptive-artificial-viscosity-coeff-bounds.tikz}
 \caption{Границы ограничений на коэффициент вязкости.}
 \label{fig:adaptive-artificial-viscosity-coeff-bounds}
@@ -533,9 +548,9 @@ u_i^{n + 1} =
 \begin{equation}
 \bigl(u_{i+1}^{n+1,*} - u_i^{n+1,*}\bigr) \,
 \bigl(u_i^{n+1,*} - u_{i-1}^{n+1,*}\bigr) < 0.
-\label{eq:oscillation_test}
+\label{eq:oscillation-test}
 \end{equation}
-Если условие изменением знака градиента~\eqref{eq:oscillation_test} выполняется, соответствующей ячейке (или узлу) присваивается значение $\mu = \mu_{\min}$, иначе $\mu = 0$.
+Если условие изменением знака градиента~\eqref{eq:oscillation-test} выполняется, соответствующей ячейке (или узлу) присваивается значение $\mu = \mu_{\min}$, иначе $\mu = 0$.
 % TODO -- add note that locators can be used here.
 % TODO -- this is not a full text
 \item \textbf{Первый корректор.} Уравнение~\eqref{eq:viscous} решается заново с полученным полем $\mu$, давая уточнённое решение $u^{n+1,**}$.
@@ -556,7 +571,7 @@ u_i^{n + 1} =
 \label{fig:adaptive-artificial-viscosity}
 \end{figure}
 
-\subsection{Гибридная схема}
+\section{Гибридная схема}
 Альтернативный подход к монотонизации состоит в поточечном смешивании решений, полученных по схеме высокого и низкого порядков. Гибридное решение на $(n+1)$-м слое определяется как
 \begin{equation}
 u^{n+1}_i = w_i\, u^{\text{high}}_i + (1-w_i)\, u^{\text{low}}_i,
@@ -566,7 +581,7 @@ u^{n+1}_i = w_i\, u^{\text{high}}_i + (1-w_i)\, u^{\text{low}}_i,
 
 
 % TODO -- Is it supposed to *theoretically* monotone?
-В частности, даже при тривиальном мнгновенном ($w_i \in \{0, 1\}$) переключеннии на схему меньшего порядка в точках изменением знака градиента выходит на практике дает видимое отсутствие эффекта Гиббса.
+В частности, даже при тривиальном мнгновенном ($w_i \in \{0, 1\}$) переключеннии на схему меньшего порядка в точках изменения знака градиента выходит на практике дает видимое отсутствие эффекта Гиббса.
 
 % TODO -- add descritions of locators/ weight funstions
 
@@ -586,7 +601,12 @@ u^{n+1}_i = w_i\, u^{\text{high}}_i + (1-w_i)\, u^{\text{low}}_i,
 \clearpage
 
 \bibliographystyle{plain}
+% \renewcommand\bibname{Reference}
+
+% \chapter*{Список использованных источников}
+% \addcontentsline{toc}{chapter}{Список использованных источников}
 \begin{thebibliography}{99}
+\addcontentsline{toc}{chapter}{Литература}
 \bibitem{godunov1954}
 Godunov~S.\,K. Different Methods for Shock Waves: Ph.D. Dissertation. --- Moscow State University, 1954.
 
@@ -596,14 +616,15 @@ Godunov~S.\,K. Different Methods for Shock Waves: Ph.D. Dissertation. --- Moscow
 \bibitem{rusanov1970}
 Rusanov~V.\,V. On difference schemes of third order accuracy for nonlinear hyperbolic systems~// Journal of Computational Physics. --- 1970. --- Vol.~5, Issue~3. --- P.~507--516.
 
+\bibitem{vonneumann1950}
+Neumann~J.~von, Richtmyer~R.\,D. A method for the numerical calculation of hydrodynamic shocks~// Journal of Applied Physics. --- 1950. --- Vol.~21, no.~3. --- P.~232--257.
+
 \bibitem{samarsky1971}
 Самарский~А.\,А. Теория разностных схем. --- М.: Наука, 1971. --- 553~с.
 
 \bibitem{godunov1977}
 Годунов~С.\,К., Рябенький~В.\,С. Разностные схемы (введение в теорию): учебное пособие. --- М.: Главная редакция физико-математической литературы изд-ва \flqq Наука\frqq, 1977.
 
-\bibitem{vonneumann1950}
-Neumann~J.~von, Richtmyer~R.\,D. A method for the numerical calculation of hydrodynamic shocks~// Journal of Applied Physics. --- 1950. --- Vol.~21, no.~3. --- P.~232--257.
 
 \bibitem{popov2015}
 Попов~И.\,В., Фрязинов~И.\,В. Метод адаптивной искусственной вязкости численного решения уравнений газовой динамики. --- М.: Красанд, 2015. --- 120~с.
