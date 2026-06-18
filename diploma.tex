@@ -8,10 +8,35 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{hyperref}
+
 \usepackage{graphicx}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepgfplotslibrary{groupplots}
+\usetikzlibrary{calc}
+\pgfplotsset{width=15cm,compat=1.18}
+
 \usepackage{booktabs}
 \usepackage{autobreak}
 \usepackage{breqn}
+
+
+% See https://www.overleaf.com/learn/latex/Pgfplots_package#Reducing_compilation_time
+\usepgfplotslibrary{external}
+\tikzexternalize
+
+\graphicspath{{./src/}}
+
+% Temporary workaround
+% See https://github.com/matplotlib/matplotlib/issues/27907
+\def\mathdefault#1{#1}
+\everymath=\expandafter{\the\everymath\displaystyle}
+\IfFileExists{scrextend.sty}{
+  \usepackage[fontsize=10.000000pt]{scrextend}
+}{
+  \renewcommand{\normalsize}{\fontsize{10.000000}{12.000000}\selectfont}
+  \normalsize
+}
 
 \begin{document}
 
@@ -213,14 +238,15 @@ G_{\sigma}(\theta, \nu) = \frac{u_j^{n+1}}{u_j^n}\Big|_{\,u_j^n = e^{i j\theta}}
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\textwidth]{./src/amplification-factor-parameter-profile.png}
+\scalebox{.4}{\input{src/amplification-factor-parameter-profile.pgf}}
 \caption{Профиль $|G_{\sigma}(\theta,\nu)|^2$ для набора параметров $\sigma$.}
 \label{fig:amplification-factor-parameter-profile}
 \end{figure}
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\textwidth]{./src/extremal-paramter-amplification-factor-parameter-profile.png}
+\scalebox{.4}{\input{src/amplification-factor-parameter-profile-extreme.pgf}}
+% \includegraphics[width=\textwidth]{./src/extremal-paramter-amplification-factor-parameter-profile.}
 \caption{Значения $|G|^2$ для больш\'{и}х $\sigma$.}
 \label{fig:extremal-paramter-amplification-factor-parameter-profile}
 \end{figure}
@@ -319,9 +345,9 @@ P(-1,\nu)-1 =
 
 Поэтому возможно аналитическое выражение $\sigma(\nu)$ из условия $\operatorname{Disc}=0$. На рис.~\ref{fig:discriminant-surface} изображена поверхность дискриминанта.
 
-\begin{figure}[ht]
+\begin{figure}[hb]
 \centering
-\includegraphics[width=\textwidth]{./src/discriminant-surface.png}
+\scalebox{.8}{\input{src/discriminant-surface.pgf}}
 \caption{Поверхность дискриминанта $\operatorname{Disc}_x(P)$ как функции от $(\nu,\sigma)$.}
 \label{fig:discriminant-surface}
 \end{figure}
@@ -346,9 +372,13 @@ P(-1,\nu)-1 =
 % TODO -- correct this
 Объединяя все положительные критические значения, находим наименьшее из них, определяющее границу устойчивости $\nu_{\max}(\sigma)$. Результирующая кривая изображена на рис.~\ref{fig:cfl-bound-vs-parameter}.
 
+% TODO: move
+\input{src/cfl-bound-vs-parameter.tikz}
+
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\textwidth]{./src/cfl-bound-vs-parameter.png}
+% \input{src/cfl-bound-vs-parameter.tikz}
+% \includegraphics[width=\textwidth]{./src/cfl-bound-vs-parameter.png}
 \caption{Максимально допустимое число Куранта $\nu_{\max}$ как функция параметра $\sigma$.}
 \label{fig:cfl-bound-vs-parameter}
 \end{figure}
@@ -360,13 +390,15 @@ P(-1,\nu)-1 =
 % TODO: Add caption and generic text
 
 \subsection{Диссипация и дисперсия}
-\subsection{Диссипация и дисперсия}
 
 На рис.~\ref{fig:dissipation-dispersion-profile} представлены зависимости модуля коэффициента перехода $|G|$ (амплитудная диссипация) и относительной фазовой ошибки (дисперсия) от безразмерного волнового числа $\theta = k\Delta x$ на отрезке $[0, \pi]$.
 
+\input{src/dissipation-dispersion-profile.tikz}
+
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\textwidth]{./src/dissipation-dispersion-profile.png}
+% Hangs for some reason
+% \includegraphics[width=\textwidth]{./src/dissipation-dispersion-profile.png}
 \caption{Диссипативные и дисперсионные свойства схемы при $\sigma = 0.5$ для различных значений числа Куранта $\nu$. Слева: модуль коэффициента перехода $|G|$ (диссипация). Справа: относительная фазовая ошибка (дисперсия).}
 \label{fig:dissipation-dispersion-profile}
 \end{figure}
@@ -384,43 +416,59 @@ P(-1,\nu)-1 =
 
 Теоретический анализ ошибки аппроксимации, проведённый в разделе~\ref{sec:scheme}, означает, что на одном временн\'{о}м шаге локальная ошибка схемы имеет \textbf{четвёртый порядок} по пространственному шагу $\Delta x$ (при фиксированном сеточном числе Куранта $\nu$). Однако при численном интегрировании уравнения переноса до конечного момента времени $T$ накопление локальной ошибки приводит к понижению порядка на единицу. Таким образом, \textbf{глобальная ошибка} (т.е. ошибка в нормах $L_1$, $L_2$ и $L_\infty$ в момент $T$) должна демонстрировать сходимость порядка $O(\Delta x^3)$.
 
-Для проверки этих оценок была проведена серия расчётов на последовательности сгущающихся равномерных сеток. Ошибки были измерены как нормы $||e||_{L_p} = (\Delta x\sum_{i = 1}^n {e_i^p})^{1/p}$ абсолютной разности точного и численного решений. В качестве теста использовалась задача о переносе гладкого начального профиля с периодическими граничными условиями.
+Для проверки этих оценок была проведена серия расчётов на последовательности сгущающихся равномерных сеток. Ошибки были измерены как нормы 
+
+$$||e||_{L_p} = (\Delta x\sum_{i = 1}^n {e_i^p})^{1/p}$$
+
+абсолютной разности точного и численного решений. В качестве теста использовалась задача о переносе гладкого начального профиля с периодическими граничными условиями.
 % Число Куранта фиксировалось равным $\nu = 0.1$, чтобы исключить влияние аппроксимации по времени.
 Результаты сравнивались с классической схемой Лакса–Вендроффа, имеющей второй порядок аппроксимации.
 
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=1.0\textwidth]{./src/convergence-le.png}
+\input{src/convergence-le.tikz}
+
+% \includegraphics[width=1.0\textwidth]{./src/convergence-le.png}
 \caption{Зависимость локальной ошибки от шага сетки $\Delta x$ в двойном логарифмическом масштабе. Наклон прямой для предлагаемой схемы близок к 4, что подтверждает четвёртый локальный порядок. Для схемы Лакса–Вендроффа наблюдается второй порядок (наклон 2).}
 \label{fig:convergence-le}
 \end{figure}
 
-\begin{table}[ht]
+\begin{table}[h]
     \centering
     \label{tab:convergence-le}
     
     \input{src/convergence-le-table.tex}
     
-    % TDOD
+    % TODO: translate
     \caption{Convergence of Lax-Wendroff and LF-type schemes, errors are $\log_2$-scaled.}
 \end{table}
 
+\begin{figure}[h]
+    \centering
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=1.0\textwidth]{./src/convergence-ge.png}
-\caption{Глобальная ошибка в нормах $L_1$, $L_2$ и $L_\infty$ в конечный момент времени $T=1$. Наклоны прямых для предлагаемой схемы соответствуют третьему порядку сходимости, в то время как схема Лакса–Вендроффа даёт второй порядок.}
-\label{convergence-ge}
+    \input{src/convergence-le-diminishing-parameter.tikz}
+
+    % TODO: change descr
+    \caption{Зависимость локальной ошибки от шага сетки $\Delta x$ в двойном логарифмическом масштабе. Наклон прямой для предлагаемой схемы близок к 4, что подтверждает четвёртый локальный порядок. Для схемы Лакса–Вендроффа наблюдается второй порядок (наклон 2).}
+    \label{fig:convergence-le-diminishing-parameter}
 \end{figure}
 
-\begin{table}[ht]
+\begin{figure}[h]
+\centering
+    \input{src/convergence-ge.tikz}
+    % \includegraphics[width=1.0\textwidth]{./src/convergence-ge.png}
+    \caption{Глобальная ошибка в нормах $L_1$, $L_2$ и $L_\infty$ в конечный момент времени. Наклоны прямых для предлагаемой схемы соответствуют третьему порядку сходимости, в то время как схема Лакса–Вендроффа даёт второй порядок.}
+    \label{convergence-ge}
+\end{figure}
+
+\begin{table}[h]
     \centering
     \label{tab:convergence-ge}
     
     \input{src/convergence-ge-table.tex}
     
-    % TDOD
+    % TODO
     \caption{Convergence of Lax-Wendroff and LF-type schemes, errors are $\log_2$-scaled.}
 \end{table}
 
@@ -440,7 +488,8 @@ u_i^{n + 1} =
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=1.0\textwidth]{./src/scheme-comparison-discontinuous.png}
+\input{src/scheme-comparison-discontinuous.tikz}
+% \includegraphics[width=1.0\textwidth]{./src/scheme-comparison-discontinuous.png}
 \caption{Сравнение решений разными методами на разрывном шаблоне.}
 \label{fig:scheme-comparison-discontinuous}
 \end{figure}
@@ -474,9 +523,10 @@ u_i^{n + 1} =
 
 \end{itemize}
 
-\begin{figure}[ht]
+\begin{figure}[h]
 \centering
-\includegraphics[width=1.0\textwidth]{./src/adaptive-artificial-viscosity-coeff-bounds.png}
+% \includegraphics[width=1.0\textwidth]{./src/adaptive-artificial-viscosity-coeff-bounds.png}
+\input{src/adaptive-artificial-viscosity-coeff-bounds.tikz}
 \caption{Границы ограничений на коэффициент вязкости.}
 \label{fig:adaptive-artificial-viscosity-coeff-bounds}
 \end{figure}
@@ -508,7 +558,8 @@ u_i^{n + 1} =
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\textwidth]{./src/adaptive-artificial-viscosity.png}
+\input{src/adaptive-artificial-viscosity.tikz}
+% \includegraphics[width=\textwidth]{./src/adaptive-artificial-viscosity.png}
 % \caption{Сравнение решений уравнения переноса: схема высокого порядка без коррекции (с осцилляциями) и та же схема с адаптивной искусственной вязкостью.}
 \label{fig:adaptive-artificial-viscosity}
 \end{figure}
@@ -530,10 +581,10 @@ u^{n+1}_i = w_i\, u^{\text{high}}_i + (1-w_i)\, u^{\text{low}}_i,
 Пример работы гибридной схемы с очень резким переключением весов показан на рис.~\ref{fig:hybrid}. Видно, что осцилляции полностью исчезают, а разрыв сохраняет высокую крутизну без чрезмерного размазывания.
 
 \begin{figure}[ht]
-\centering
-\includegraphics[width=\textwidth]{./src/hybrid.png}
-% \caption{Сравнение решений: чистая схема высокого порядка, схема первого порядка и гибридная схема. Гибридная комбинация эффективно устраняет осцилляции, сохраняя точность в гладких областях.}
-\label{fig:hybrid}
+    \centering
+    \input{src/hybrid.tikz}
+    % \caption{Сравнение решений: чистая схема высокого порядка, схема первого порядка и гибридная схема. Гибридная комбинация эффективно устраняет осцилляции, сохраняя точность в гладких областях.}
+    \label{fig:hybrid}
 \end{figure}
 
 Оба метода — адаптивная искусственная вязкость и гибридная схема — позволяют успешно подавить нефизичные осцилляции, обеспечивая свойство монотонности численного решения при сохранении высокого порядка точности вне особых точек.
