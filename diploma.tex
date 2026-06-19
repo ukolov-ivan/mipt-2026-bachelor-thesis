@@ -252,16 +252,16 @@ u_i^{n + 1} - u(x_i, t^{n + 1}) = \input{src/scheme-taylor-error.tex} + \ldots.
 \begin{equation}
 \left(\frac{\partial^3 u}{\partial x^3}\right)_i
 \approx A\,u_{i-2} + B\,u_{i-1} + C\,u_i + D\,u_{i+1} + E\,u_{i+2},
-\label{eq:stencil}
+\label{eq:correction-stencil-form}
 \end{equation}
-где коэффициенты $A,B,C,D,E$ выбираются из условия компенсации мешающих членов. Используя разложения
+где коэффициенты $A,B,C,D,E$ выбираются из условия компенсации мешающих членов. Для контроля устйочивости мы оставляем член ошибки при $u^{(IV)}_{xxxx}$, пропорционалный $\sigma - 1$, и не пытаемя его сократить. Используя разложения
 \begin{equation*}
 \begin{aligned}
-u_{i\pm1} &= u_i \pm \Delta x\,u_x' + \frac{\Delta x^2}{2}u_{xx}'' \pm \frac{\Delta x^3}{6}u_{xxx}''' + \frac{\Delta x^4}{24}u_{xxxx} + \dots,\\
-u_{i\pm2} &= u_i \pm 2\Delta x\,u_x' + \frac{(2\Delta x)^2}{2}u_{xx}'' \pm \frac{(2\Delta x)^3}{6}u_{xxx}''' + \frac{(2\Delta x)^4}{24}u_{xxxx} + \dots,
+u_{i\pm1} &= u_i \pm \Delta x\,u_x' + \frac{\Delta x^2}{2}u_{xx}'' \pm \frac{\Delta x^3}{6}u_{xxx}''' + \frac{\Delta x^4}{24}u^{(IV)}_{xxxx} + \dots,\\
+u_{i\pm2} &= u_i \pm 2\Delta x\,u_x' + \frac{(2\Delta x)^2}{2}u_{xx}'' \pm \frac{(2\Delta x)^3}{6}u_{xxx}''' + \frac{(2\Delta x)^4}{24}u^{(IV)}_{xxxx} + \dots,
 \end{aligned}
 \end{equation*}
-и подставляя~\eqref{eq:stencil} с учётом структуры ошибки в~\eqref{eq:scheme-taylor-error}, мы приходим к системе линейных уравнений относительно коэффициентов $A,\dots,E$. Эквивалентная матричная запись системы после сокращения параметров (вида $\Delta x^k/k!$) имеет вид:
+и подставляя~\eqref{eq:correction-stencil-form} с учётом структуры ошибки в~\eqref{eq:scheme-taylor-error}, мы приходим к системе линейных уравнений относительно коэффициентов $A,\dots,E$. матричная запись системы после сокращения параметров (вида $\Delta x^k/k!$) имеет вид:
 % TODO -- переписать систему как расширенную матрицу.
 \begin{equation*}
 \input{./src/taylor-coefficients-system.tex}.
@@ -334,14 +334,14 @@ G_{\sigma}(\theta,\nu) =
 
 \begin{figure}[ht]
 \centering
-% \scalebox{.4}{\input{src/amplification-factor-parameter-profile.pgf}}
+\scalebox{.5}{\input{src/amplification-factor-parameter-profile.pgf}}
 \caption{Профиль $|G_{\sigma}(\theta,\nu)|^2$ для набора параметров $\sigma$.}
 \label{fig:amplification-factor-parameter-profile}
 \end{figure}
 
 \begin{figure}[ht]
 \centering
-% \scalebox{.4}{\input{src/amplification-factor-parameter-profile-extreme.pgf}}
+\scalebox{.5}{\input{src/amplification-factor-parameter-profile-extreme.pgf}}
 \caption{Значения $|G|^2$ для больш\'{и}х $\sigma$.}
 \label{fig:extremal-paramter-amplification-factor-parameter-profile}
 \end{figure}
