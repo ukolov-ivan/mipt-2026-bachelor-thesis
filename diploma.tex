@@ -13,7 +13,7 @@
 \usepackage{pgfplotstable}
 \usepgfplotslibrary{groupplots}
 \usetikzlibrary{calc}
-\pgfplotsset{width=15cm,compat=1.18}
+\pgfplotsset{compat=1.18}
 \usepackage{booktabs}
 \usepackage{autobreak}
 \usepackage{breqn}
@@ -519,6 +519,7 @@ $$||e||_{L_p} = (\Delta x\sum_{i = 1}^n {e_i^p})^{1/p}$$
     \input{src/convergence-le-table.tex}
     
     % TODO: translate
+    % TODO: Add mesh size term
     \caption{Convergence of Lax-Wendroff and LF-type schemes, errors are $\log_2$-scaled.}
 \end{table}
 
