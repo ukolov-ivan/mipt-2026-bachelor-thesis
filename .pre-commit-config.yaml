@@ -5,4 +5,5 @@ repos:
       - id: nbstripout
         files: \.ipynb$
         args:
+          - --keep-id
           - --extra-keys=metadata.kernelspec metadata.language_info
