@@ -1,0 +1,6 @@
+matplotlib==3.10.8
+numpy==2.2.6
+sympy==1.14.0
+tikzplotlib==0.10.1
+# See https://github.com/nschloe/tikzplotlib/issues/618#issuecomment-2174149494
+webcolors<24.6

@@ -15,7 +15,7 @@
 \usepackage{pgfplotstable}
 \usepgfplotslibrary{groupplots}
 \usetikzlibrary{calc}
-\pgfplotsset{compat=1.18}
+\pgfplotsset{compat=newest}
 \usepackage{booktabs}
 \usepackage{autobreak}
 \usepackage{breqn}
@@ -50,9 +50,17 @@
 
 % See https://www.overleaf.com/learn/latex/Pgfplots_package#Reducing_compilation_time
 \usepgfplotslibrary{external}
-\tikzexternalize
+\pgfplotsset{table/search path={., ./attachments}}
+% TODO: extract and unify setup it in a single make script. This way,
+%  we can pre-create direcotry for externalized output. Right now it requires that
+%  ~~top-level build command has been ran with the same directory~~
+%  tikz directory is pre-created.
+% Default behavior for prefix is, of course, to choose the worst possible place to
+% be relative to depedning on the weather I guess
+\tikzexternalize[prefix=tikz/]
+% \tikzset{external/system call={pdflatex \tikzexternalcheckshellescape -halt-on-error -output-directory=build -interaction=batchmode -jobname "\image" "\texsource"}}
 
-\graphicspath{{./src/}}
+\graphicspath{{attachments/}}
 
 % Temporary workaround
 % See https://github.com/matplotlib/matplotlib/issues/27907
@@ -239,13 +247,13 @@ u_i^{n+1} = \biggl[\,\sigma u_i^n
 Разложим значения в узлах по формуле Тейлора относительно точки $(x_i,t^n)$. Если решение достаточно гладкое, получаем дифференциальное приближение схемы~\eqref{eq:modified-expanded} (индексы в записи опущены для простоты):
 
 \begin{dmath}
-u^{n + 1} = \input{src/scheme-taylor.tex} + \ldots,
+u^{n + 1} = \input{attachments/scheme-taylor.tex} + \ldots,
 \end{dmath}
 
 откуда можно выделить члены ошибки
 
 \begin{dmath}
-u_i^{n + 1} - u(x_i, t^{n + 1}) = \input{src/scheme-taylor-error.tex} + \ldots.
+u_i^{n + 1} - u(x_i, t^{n + 1}) = \input{attachments/scheme-taylor-error.tex} + \ldots.
 \label{eq:scheme-taylor-error}
 \end{dmath}
 
@@ -266,7 +274,7 @@ u_{i\pm2} &= u_i \pm 2\Delta x\,u_x' + \frac{(2\Delta x)^2}{2}u_{xx}'' \pm \frac
 и подставляя~\eqref{eq:correction-stencil-form} с учётом структуры ошибки в~\eqref{eq:scheme-taylor-error}, мы приходим к системе линейных уравнений относительно коэффициентов $A,\dots,E$. Матричная форма системы после сокращения параметров (вида $\Delta x^k/k!$) имеет вид:
 % TODO -- переписать систему как расширенную матрицу.
 \begin{equation*}
-\input{./src/taylor-coefficients-system.tex}.
+\input{attachments/taylor-coefficients-system.tex}.
 \end{equation*}
 Данная система имеет единственное решение, параметризованное величиной $\sigma$, так как матрица коэффициентов является матрицей Вандермонда с попарно различными узлами.
 
@@ -274,19 +282,19 @@ u_{i\pm2} &= u_i \pm 2\Delta x\,u_x' + \frac{(2\Delta x)^2}{2}u_{xx}'' \pm \frac
 Выражая коэффициенты $A,\dots,E$ и подставляя полученный член в разностное уравнение, получаем окончательный вид схемы
 \begin{dmath}
 u_i^{n+1} =
-\input{./src/scheme-cfl-form-stencil-form.tex},
+\input{attachments/scheme-cfl-form-stencil-form.tex},
 \label{eq:scheme-cfl-form-stencil-form}
 \end{dmath}
 где $\nu = a\Delta t/\Delta x$~--- число Куранта.  
 
 Расписав дифференциальное приближение, можно найти ошибку
 \begin{dmath*}
-u_i^{n + 1} - u(x_i, t^{n + 1}) = \input{./src/scheme-corrected-error-taylor.tex} + \ldots
+u_i^{n + 1} - u(x_i, t^{n + 1}) = \input{attachments/scheme-corrected-error-taylor.tex} + \ldots
 \end{dmath*}
 
 и заметить, что главный член ошибки аппроксимации этой схемы соответственно даётся выражением
 \begin{equation}
-\input{./src/principal-error-term.tex}.
+\input{attachments/principal-error-term.tex}.
 \label{eq:principal-error-term}
 \end{equation}
 Таким образом, достигается высокий (третий) порядок аппроксимации по пространству при выполнении условия устойчивости и подходящем выборе параметра $\sigma$.
@@ -307,7 +315,7 @@ G_{\sigma}(\theta, \nu) = \frac{u_j^{n+1}}{u_j^n}\Big|_{\,u_j^n = e^{i j\theta}}
 
 \begin{dmath*}
 G_{\sigma}(\theta,\nu) =
-\input{./src/amplification-factor.tex}.
+\input{attachments/amplification-factor.tex}.
 \end{dmath*}
 
 Квадрат модуля множителя перехода $|G|^2$ тогда имеет вид:
@@ -317,7 +325,7 @@ G_{\sigma}(\theta,\nu) =
 %   \begin{autobreak}
 %
 % \vert G\vert ^2 =
-\input{./src/amplification-factor-mod-squared.tex}.
+\input{attachments/amplification-factor-mod-squared.tex}.
 \end{dmath*}
 
 На рис.~\ref{fig:amplification-factor-parameter-profile} показана зависимость $|G|^2$ от волнового числа $\theta$ при различных значениях параметра $\sigma$, а на рис.~\ref{fig:extremal-paramter-amplification-factor-parameter-profile}~--- поведение значений $|G|^2$ при более <<экстремальных>> значениях $\sigma \approx 1$, $\sigma > 1$. Для практических целей мы ограничиваемся $\nu, \sigma \in [0, 1]$, но такие визуализации позволяют лучше понять поведение множителя перехода.
@@ -337,14 +345,14 @@ G_{\sigma}(\theta,\nu) =
 \begin{figure}[ht]
 \centering
 % FIXME: typo
-\scalebox{.5}{\input{src/amplification-factor-parameter-profile.pgf}}
+\scalebox{.5}{\input{attachments/amplification-factor-parameter-profile.pgf}}
 \caption{Профиль $|G_{\sigma}(\theta,\nu)|^2$ для набора параметров $\sigma$.}
 \label{fig:amplification-factor-parameter-profile}
 \end{figure}
 
 \begin{figure}[ht]
 \centering
-\scalebox{.5}{\input{src/amplification-factor-parameter-profile-extreme.pgf}}
+\scalebox{.5}{\input{attachments/amplification-factor-parameter-profile-extreme.pgf}}
 \caption{Значения $|G|^2$ для больш\'{и}х $\sigma$.}
 \label{fig:extremal-paramter-amplification-factor-parameter-profile}
 \end{figure}
@@ -405,14 +413,14 @@ P(-1,\nu)-1\quad \text{ и }\quad P(1,\nu)-1.
 
 \begin{equation*}
 P(1,\nu)-1 \equiv
-\input{./src/left-boundary-stability-condition-polynomial.tex}
+\input{attachments/left-boundary-stability-condition-polynomial.tex}
 \end{equation*}
 
 и
 
 \begin{equation}
 P(-1,\nu)-1 =
-\input{./src/right-boundary-stability-condition-polynomial.tex}.
+\input{attachments/right-boundary-stability-condition-polynomial.tex}.
 \label{eq:right-boundary-stability-condition-polynomial}
 \end{equation}
 
@@ -421,7 +429,7 @@ P(-1,\nu)-1 =
 
 Дискриминант полинома $P(x,\nu)-1$ по переменной $x$ (с точностью до исключения кратных постоянных корней) записывается как
 \begin{dmath}
-\operatorname{Disc}_x(P) = \input{./src/discriminant.tex}
+\operatorname{Disc}_x(P) = \input{attachments/discriminant.tex}
 \label{eq:discriminant}
 \end{dmath}
 
@@ -443,16 +451,14 @@ P(-1,\nu)-1 =
 
 \begin{figure}[hb]
 \centering
-\scalebox{.6}{\input{src/discriminant-surface.pgf}}
+\scalebox{.6}{\input{attachments/discriminant-surface.pgf}}
 \caption{Поверхность дискриминанта $\operatorname{Disc}_x(P)$ как функции от $(\nu,\sigma)$.}
 \label{fig:discriminant-surface}
 \end{figure}
 
 Точка касания $x$ для первого корня $\sigma(\nu)$ (остальные корни и соответствующие точки касания не приводятся для краткости) определяется отношением
 
-\[
-\input{src/tangency-point.tex}
-\]
+\input{attachments/tangency-point.tex}
 
 В общем случае для конкретного метода (то есть при отсутствии или фиксации параметра) проанализировать интервал можно
 
@@ -476,7 +482,7 @@ P(-1,\nu)-1 =
 
 \begin{figure}[ht]
     \centering
-    \input{src/cfl-bound-vs-parameter.tikz}
+    \input{attachments/cfl-bound-vs-parameter.tikz}
     \caption{Максимально допустимое число Куранта $\nu_{\max}$ как функция параметра $\sigma$.}
     \label{fig:cfl-bound-vs-parameter}
 \end{figure}
@@ -492,7 +498,7 @@ P(-1,\nu)-1 =
 
 \begin{figure}[ht]
     \centering
-    \input{src/dissipation-dispersion-profile.tikz}
+    \input{attachments/dissipation-dispersion-profile.tikz}
     \caption{Диссипативные и дисперсионные свойства схемы при $\sigma = 0.5$ для различных значений числа Куранта $\nu$. Слева: модуль коэффициента перехода $|G|$ (диссипация). Справа: относительная фазовая ошибка (дисперсия).}
     \label{fig:dissipation-dispersion-profile}
 \end{figure}
@@ -524,7 +530,7 @@ $$||e||_{L_p} = (\Delta x\sum_{i = 1}^n {e_i^p})^{1/p}$$
 
 \begin{figure}[ht]
     \centering
-    \input{src/convergence-le.tikz}
+    \input{attachments/convergence-le.tikz}
     \caption{Зависимость локальной ошибки от шага сетки $\Delta x$ в двойном логарифмическом масштабе. Наклон прямой для предлагаемой схемы близок к 4, что подтверждает четвёртый локальный порядок. Для схемы Лакса–Вендроффа наблюдается второй порядок (наклон 2).}
     \label{fig:convergence-le}
 \end{figure}
@@ -533,7 +539,7 @@ $$||e||_{L_p} = (\Delta x\sum_{i = 1}^n {e_i^p})^{1/p}$$
     \centering
     \label{tab:convergence-le}
     
-    \input{src/convergence-le-table.tex}
+    \input{attachments/convergence-le-table.tex}
     
     \caption{Сходимость различных схем в зависимости от размера сетки, локальные ошибки в масштабе $\log_2$.}
 \end{table}
@@ -541,7 +547,7 @@ $$||e||_{L_p} = (\Delta x\sum_{i = 1}^n {e_i^p})^{1/p}$$
 \begin{figure}[h]
     \centering
 
-    \input{src/convergence-le-diminishing-parameter.tikz}
+    \input{attachments/convergence-le-diminishing-parameter.tikz}
 
     \caption{Зависимость локальной ошибки от шага сетки $\Delta x$ в двойном логарифмическом масштабе при стремлении старшего члена ошибки к 0 ($\sigma = 0.99$).}
     \label{fig:convergence-le-diminishing-parameter}
@@ -549,7 +555,7 @@ $$||e||_{L_p} = (\Delta x\sum_{i = 1}^n {e_i^p})^{1/p}$$
 
 \begin{figure}[h]
 \centering
-    \input{src/convergence-ge.tikz}
+    \input{attachments/convergence-ge.tikz}
     \caption{Интегральная ошибка в конечный момент времени. Наклоны прямых для предлагаемой схемы соответствуют третьему порядку сходимости, в то время как схема Лакса–Вендроффа даёт второй порядок.}
     \label{convergence-ge}
 \end{figure}
@@ -558,7 +564,7 @@ $$||e||_{L_p} = (\Delta x\sum_{i = 1}^n {e_i^p})^{1/p}$$
     \centering
     \label{tab:convergence-ge}
     
-    \input{src/convergence-ge-table.tex}
+    \input{attachments/convergence-ge-table.tex}
     
     \caption{Сходимость различных схем в зависимости от размера сетки, интегральные ошибки в масштабе $\log_2$.}
 \end{table}
@@ -572,14 +578,14 @@ $$||e||_{L_p} = (\Delta x\sum_{i = 1}^n {e_i^p})^{1/p}$$
 
 \begin{dmath}
 u_i^{n + 1} =
-\input{src/rusanov-scheme.tex}
+\input{attachments/rusanov-scheme.tex}
 % TODO - add label
 \end{dmath}
 
 
 \begin{figure}[ht]
     \centering
-    \input{src/scheme-comparison-discontinuous.tikz}
+    \input{attachments/scheme-comparison-discontinuous.tikz}
     \caption{Сравнение решений разными методами на разрывном шаблоне.}
     \label{fig:scheme-comparison-discontinuous}
 \end{figure}
@@ -639,21 +645,21 @@ u_0(x) = \begin{cases}
 
 \begin{dmath*} 
 \mu_{\min} = 
-\input{src/mu2-min.tex}.
+\input{attachments/mu2-min.tex}.
 \end{dmath*}
 
 
 \item \textbf{Верхняя граница $\mu_{\max}$} --- максимально допустимое значение, при превышении которого схема теряет устойчивость. Здесь она имеет вид
 
 \[
-\mu_{\max} = \input{src/mu2-max.tex}.
+\mu_{\max} = \input{attachments/mu2-max.tex}.
 \]
 
 \end{itemize}
 
 \begin{figure}[h]
 \centering
-\input{src/adaptive-artificial-viscosity-coeff-bounds.tikz}
+\input{attachments/adaptive-artificial-viscosity-coeff-bounds.tikz}
 \caption{Границы ограничений на коэффициент вязкости.}
 \label{fig:adaptive-artificial-viscosity-coeff-bounds}
 \end{figure}
@@ -694,7 +700,7 @@ u_0(x) = \begin{cases}
 
 \begin{figure}[ht]
 \centering
-\input{src/adaptive-artificial-viscosity.tikz}
+\input{attachments/adaptive-artificial-viscosity.tikz}
 \caption{Сравнение решений уравнения переноса: схема высокого порядка с осцилляциями и схема с адаптивной искусственной вязкостью. (Тут и далее $\sigma = 0.8$, $\nu = 0.8$)}
 \label{fig:adaptive-artificial-viscosity}
 \end{figure}
@@ -737,7 +743,7 @@ S_i^{\text{var}} = 1 - \frac{|u_{i-1} - 2u_i + u_{i+1}|}{|u_{i+2} - u_{i+1}| + |
 
 \begin{figure}[ht]
     \centering
-    \input{src/hybrid.tikz}
+    \input{attachments/hybrid.tikz}
     \caption{Сравнение решений: схема высокого порядка и гибридная схема с функцией веса $2\cdot S^{\text{var}} - 0.5$. Гибридная комбинация эффективно устраняет осцилляции, сохраняя достаточную точность в гладких областях.}
     \label{fig:hybrid}
 \end{figure}
@@ -745,7 +751,7 @@ S_i^{\text{var}} = 1 - \frac{|u_{i-1} - 2u_i + u_{i+1}|}{|u_{i+2} - u_{i+1}| + |
 \begin{table}[h]
     \centering
     
-    \input{src/hybrid-global-erros.tex}
+    \input{attachments/hybrid-global-erros.tex}
     
     \label{tab:hybrid-global-erros}
     \caption{Интегральные ошибки в норме $L_2$ различных схем (с разными датчиками осцилляций) на различных профилях.}
@@ -753,7 +759,7 @@ S_i^{\text{var}} = 1 - \frac{|u_{i-1} - 2u_i + u_{i+1}|}{|u_{i+2} - u_{i+1}| + |
 
 \begin{figure}[ht]
     \centering
-    \input{src/monotization-comparison.tikz}
+    \input{attachments/monotization-comparison.tikz}
     \caption{Сравнение способов монотонизации: гибридная схема и схема с АИВ сравниваются со схемой без монотонизации.}
     \label{fig:hybrid}
 \end{figure}

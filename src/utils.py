@@ -1,14 +1,17 @@
 # pylint: disable=import-outside-toplevel,protected-access
 import packaging.version
 
+
 def compatability():
     '''
     Should be called before tikzplotlib/matplotlib2tikz import
     '''
 
     import matplotlib
+    # pylint: disable-next=line-too-long
     # See https://github.com/matplotlib/matplotlib/blob/42b88d01fdd93846d925b1097167d36ea31c7733/doc/api/prev_api_changes/api_changes_3.9.0/removals.rst?plain=1#L147
-    if packaging.version.parse(matplotlib.__version__) >= packaging.version.parse("3.9.0"):
+    if packaging.version.parse(
+            matplotlib.__version__) >= packaging.version.parse("3.9.0"):
         setattr(matplotlib.legend.Legend, "legendHandles",
                 property(lambda self: self.legend_handles))
     # See https://github.com/nschloe/tikzplotlib/issues/582
@@ -31,6 +34,9 @@ def compatability():
             lambda self: self._unscaled_dash_pattern[1]))
 
     import numpy as np
-    if packaging.version.parse(np.__version__) >= packaging.version.parse("2.0.0"):
+    if packaging.version.parse(
+            np.__version__) >= packaging.version.parse("2.0.0"):
         setattr(np, "float_", np.float64)
         setattr(np, "NaN", np.nan)
+
+# TODO: add patches for tikzplotlib
