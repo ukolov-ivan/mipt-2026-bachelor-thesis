@@ -1,0 +1,439 @@
+\documentclass[12pt, aspectratio=169]{beamer}
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\usepackage{cmap}					    %%% PDF search
+\usepackage{mathtext} 				    %%% cyrillic in math mode
+
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multicol}
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{breqn}
+
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepgfplotslibrary{groupplots}
+\usetikzlibrary{calc}
+\pgfplotsset{compat=1.18}
+
+\usepgfplotslibrary{external}
+\pgfplotsset{table/search path={., ./attachments}}
+\tikzexternalize[prefix=tikz/]
+
+\graphicspath{{attachments/}}
+
+% Temporary workaround
+% See https://github.com/matplotlib/matplotlib/issues/27907
+\def\mathdefault#1{#1}
+\everymath=\expandafter{\the\everymath\displaystyle}
+\IfFileExists{scrextend.sty}{
+  \usepackage[fontsize=10.000000pt]{scrextend}
+}{
+  \renewcommand{\normalsize}{\fontsize{10.000000}{12.000000}\selectfont}
+  \normalsize
+}
+
+
+\setbeamertemplate{navigation symbols}{}
+
+% ============================================================
+\makeatletter
+\setbeamertemplate{footline}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,left]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\quad\insertauthor
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\inserttitle
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+    \usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em} \insertframenumber{} / \inserttotalframenumber\hspace*{2ex}%
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+\makeatother
+
+%=====================================================
+% Title page definition
+% ============================================================
+\title{Модифицированный метод Лакса-Фридрихса для уравнения переноса}
+\author{Уколов Иван.}
+\institute{
+  МФТИ\\
+  Кафедра Математического моделирования и прикладной математики.\\
+  Научный руководитель: И.В. Попов.
+}
+\date{г. Москва, 2026 г.}
+
+
+
+%=====================================================
+\begin{document}
+
+
+%=====================================================
+% Title page
+%=====================================================
+\begin{frame}
+\titlepage
+\end{frame}
+
+
+%=====================================================
+\begin{frame}{Постановка задачи}
+Рассматривается одномерное линейное уравнение переноса
+\[
+\frac{\partial u}{\partial t} + a\,\frac{\partial u}{\partial x} = 0,\qquad a = \mathrm{const} > 0,
+\]
+с начальным условием
+\[
+u(x,0)=f(x),\quad x\in[0,L].
+\]
+Точное решение — перенос профиля без искажений:
+\[
+u(x,t)=f(x-at).
+\]
+
+\textbf{Цель:} построить явную разностную схему повышенного (третьего) порядка, сохраняющую монотонность на разрывах.
+\end{frame}
+
+
+%=====================================================
+\begin{frame}{Модификация схемы Лакса--Фридрихса}
+Классическая схема Лакса--Фридрихса:
+\[
+u_i^{n+1} = \frac{1}{2}(u_{i+1}^n + u_{i-1}^n) 
+            - \frac{a\Delta t}{2\Delta x}\bigl(W_{i+1/2}^n - W_{i-1/2}^n\bigr).
+\]
+
+Введём параметр $\sigma$ и модифицируем:
+\[
+u_i^{n+1} = \Bigl[\,\sigma u_i^n 
+            + (1-\sigma)\frac{u_{i+1}^n + u_{i-1}^n}{2}\Bigr]
+            - \frac{a\Delta t}{\Delta x}\bigl(W_{i+1/2}^n - W_{i-1/2}^n\bigr).
+\]
+
+После раскрытия потоков разностное уравнение принимает форму
+
+\begin{equation*}
+u_i^{n+1} = \biggl[\,\sigma u_i^n 
+            + (1-\sigma)\frac{u_{i+1}^n + u_{i-1}^n}{2}\biggr]
+            - a\Delta t\,\frac{u_{i+1}^n - u_{i-1}^n}{2\Delta x}
+            + \frac{a^2\Delta t^2}{2}\,
+              \frac{u_{i+1}^n - 2u_i^n + u_{i-1}^n}{\Delta x^2}.
+\label{eq:modified-expanded}
+\end{equation*}
+\end{frame}
+
+
+%=====================================================
+\begin{frame}{Анализ ошибки аппроксимации}
+
+Рассмотрев дифференциальное приближение схемы мы можем найти ошибку
+
+\begin{dmath*}
+  u_i^{n+1} - u(x_i, t^{n+1}) \approx 
+  \input{attachments/scheme-taylor-error.tex} + \ldots
+\end{dmath*}
+
+Для повышения порядка разложим производную $u_{xxx}$ компенсируя старшие члены ошибки предыдущих производных.
+\end{frame}
+
+
+%=====================================================
+\begin{frame}{Определение весов коррекции}
+Аппроксимируем $u_{xxx}$ в узле $i$ на пятиточечном шаблоне:
+\[
+\left(\frac{\partial^3 u}{\partial x^3}\right)_i
+\approx A\,u_{i-2} + B\,u_{i-1} + C\,u_i + D\,u_{i+1} + E\,u_{i+2}.
+\]
+Подстановка тейлоровских разложений даёт линейную систему относительно $A,\dots,E$:
+
+\vspace{0.3cm}
+\[
+\input{attachments/taylor-coefficients-system.tex}.
+\]
+\end{frame}
+
+
+%=====================================================
+\begin{frame}{Итоговая схема повышенного порядка}
+Подстановка найденных коэффициентов приводит к
+
+% \small
+\begin{dmath*}
+u_i^{n+1} =
+\input{attachments/scheme-cfl-form-stencil-form.tex},
+\end{dmath*}
+\normalsize
+где $\nu = a\Delta t/\Delta x$ — число Куранта.
+
+Главный член ошибки после коррекции имеет вид
+\[
+\input{attachments/principal-error-term.tex}.
+\]
+
+Итого, порядок интегральной ошибки — третий (при $\Delta t \sim \Delta x$).
+\end{frame}
+
+
+%=====================================================
+\begin{frame}{Анализ устойчивости по фон Нейману}
+Подстановка гармоники $u_j^n = \lambda^n e^{ij\theta}$ ($\theta = k\Delta x$) даёт
+множитель перехода $G_\sigma(\theta,\nu)$. Квадрат модуля $|G|^2$ — полином
+от $x = \cos\theta$ и $\nu^2$:
+\[
+P(x,\nu) = |G_\sigma(\theta,\nu)|^2,\qquad x\in[-1,1].
+\]
+Схема устойчива тогда и только тогда, когда $\displaystyle\max_{x\in[-1,1]} P(x,\nu) \le 1$.
+
+Граница устойчивости ищется из условий:
+\begin{itemize}
+\item $P(-1,\nu) = 1$ и $P(1,\nu) = 1$ (граничные волновые числа);
+\item $P(x,\nu) = 1$ и $\frac{\partial P(x,\nu)}{\partial x} = 0$ (точки касания). То есть $\operatorname{Disc}_x\bigl(P(x,\nu)-1\bigr)=0$.
+\end{itemize}
+\end{frame}
+
+
+%=====================================================
+\begin{frame}{Определяющие полиномы и дискриминант}
+Граничные условия дают полиномы (по $\nu^2$):
+\[
+P(1,\nu)-1 \equiv
+\input{attachments/left-boundary-stability-condition-polynomial.tex},
+\]
+\[
+P(-1,\nu)-1 =
+\input{attachments/right-boundary-stability-condition-polynomial.tex}.
+\]
+
+Дискриминант по $x$:
+\begin{dmath*}
+\operatorname{Disc}_x\bigl(P(x,\nu)-1\bigr) =
+\input{attachments/discriminant.tex}
+\end{dmath*}
+
+Из этих выражений аналитически находится $\nu_{\max}(\sigma)$.
+\end{frame}
+
+
+%=====================================================
+\begin{frame}{Зависимость $\nu_{\max}$ от параметра $\sigma$}
+\begin{columns}[T]
+\column{0.5\textwidth}
+% \left
+Поверхность дискриминанта:
+
+% \vspace{-1cm}
+
+\hspace*{-2.5cm}
+% \begin{figure}
+%     \scalebox{0.45}{\input{attachments/discriminant-surface.pgf}}
+% \end{figure}
+\scalebox{0.45}{\input{attachments/discriminant-surface.pgf}}
+% \input{attachments/discriminant-surface.pgf}
+\column{0.5\textwidth}
+% \centering
+Максимальное число Куранта:
+\vspace{0cm}
+\vspace*{1cm}
+\hspace*{0.5cm}
+\scalebox{0.5}{\input{attachments/cfl-bound-vs-parameter.tikz}}
+\end{columns}
+
+% $\nu_{\max}(\sigma)$ — минимальное положительное решение $P=1$;
+% для $\sigma \in [0.5,\, 1.0]$ значение $\nu_{\max}$ близко к единице.
+\end{frame}
+
+
+%=====================================================
+\begin{frame}{Диссипативные и дисперсионные свойства}
+\begin{center}
+\scalebox{0.75}{\input{attachments/dissipation-dispersion-profile.tikz}}
+\end{center}
+
+\vspace{-0.3cm}
+\begin{itemize}
+\item $|G|\to 1$ при $\theta\to0$ (аппроксимация);
+\item Сильная диссипация коротких волн при средних $\nu$;
+% \item Относительная фазовая ошибка меняет знак в зависимости от $\nu$.
+\end{itemize}
+\end{frame}
+
+
+%=====================================================
+\begin{frame}{Порядок сходимости}
+\begin{center}
+\scalebox{0.8}{\input{attachments/convergence-ge.tikz}}
+\end{center}
+% \vspace{0.2cm}
+% \scalebox{0.8}{\input{attachments/convergence-le-table.tex}}
+% \centering
+% Интегральная/ ошибка ($\sim \Delta x^3$)
+
+% \vspace{0.2cm}
+% \scalebox{0.55}{\input{attachments/convergence-ge.tikz}}
+
+% \vspace{0.2cm}
+% \scalebox{0.8}{\input{attachments/convergence-ge-table.tex}}
+% \end{minipage}
+
+Теоретические оценки полностью подтверждаются.
+\end{frame}
+
+
+%=====================================================
+\begin{frame}{Монотонизация}
+Схемы высокого порядка генерируют нефизичные осцилляции (явление Гиббса):
+\begin{center}
+\scalebox{0.75}{\input{attachments/scheme-comparison-discontinuous.tikz}}
+\end{center}
+\end{frame}
+
+
+%=====================================================
+\begin{frame}{Метод адаптивной искусственной вязкости}
+    \vspace{.2cm}
+    Вводится локальное диссипативное слагаемое:
+    % Changed for layout adjustment. Same as
+    % \(\frac{\partial u}{\partial t} + a\frac{\partial u}{\partial x}
+    %   = \frac{\partial}{\partial x}\!\left(\mu(x,t)\frac{\partial u}{\partial x}\right)\).
+    \(u'_t + a u'_x = \left(\mu(x,t) u'_x\right)'_x\).
+    
+    % Алгоритм:
+    \begin{multicols}{2}
+    \begin{enumerate}
+        % \column{0.5\textwidth}
+        \vspace{-0.4cm}
+        \item Предиктор по базовой схеме
+        % высокого порядка
+        % \vspace{-0.4cm}
+        \item Обнаружение немонотонности
+        \vspace{-0.4cm}
+        \item Введение вязкости $\mu$ от $\mu_{\min}$ до $\mu_{\max}$
+        % (при необходимости $\mu_{\max}$)
+        % \vspace{-0.4cm}
+        \item Корректор с подобранным полем $\mu$
+        % \vspace{-0.4cm}
+    \end{enumerate}
+    \end{multicols}
+
+
+    \begin{center}
+    \vspace{0.15cm}
+    \scalebox{0.7}{
+      \input{attachments/adaptive-artificial-viscosity.tikz}
+    }
+    % \includegraphics[width=\textwidth]{adaptive-artificial-viscosity.tikz}
+    \end{center}
+% Note: Осцилляции подавлены, но разрыв несколько размывается.
+\end{frame}
+
+
+%=====================================================
+\begin{frame}{Монотонизация: гибридная схема}
+Комбинируем решения высокого и низкого порядков:
+\[
+u^{n+1}_i = w_i\, u^{\text{high}}_i + (1-w_i)\, u^{\text{low}}_i,
+\]
+где $w_i\in[0,1]$ — вес, получаемый из \textbf{датчика осцилляций}.
+
+% \begin{itemize}
+% \item датчик кривизны,
+% \item датчик вариации на 5‑точечном шаблоне.
+% \end{itemize}
+
+\begin{center}
+\scalebox{0.75}{\input{attachments/hybrid.tikz}}
+\end{center}
+\end{frame}
+
+
+%=====================================================
+\begin{frame}{Сравнение способов монотонизации}
+  
+% Alignment here is a bit finicky
+\vspace{0.1cm}
+\begin{columns}
+\column{0.5\textwidth}
+    \textbf{Адаптивная вязкость}
+    \begin{itemize}
+    % \vspace{-0.2cm}
+    % \item[$+$] простая реализация
+    \vspace{-0.2cm}
+    \item[$+$] устойчива
+    \vspace{-0.2cm}
+    \item[$-$] размазывает разрыв
+    \end{itemize}
+\vspace{0.2cm}
+\column{0.5\textwidth}
+    \textbf{Гибридная схема}
+    \begin{itemize}
+    \vspace{-0.2cm}
+    \item[$+$] крутой профиль разрыва и высокая точность в гладких зонах
+    \vspace{-0.2cm}
+    \item[$-$] зависит от задачи
+    \end{itemize}
+\end{columns}
+
+\begin{center}
+\scalebox{0.75}{\input{attachments/monotization-comparison.tikz}}
+\end{center}
+\end{frame}
+
+% \begin{frame}{Сравнение методов монотонизации}
+% \vspace{-0.5cm}
+% \begin{center}
+% \scalebox{0.75}{\input{attachments/monotization-comparison.tikz}}
+% \end{center}
+
+% \vspace{-0.3cm}
+% \begin{tabular}{@{}p{0.45\textwidth}@{\hspace{0.1\textwidth}}p{0.45\textwidth}@{}}
+% \textbf{Адаптивная вязкость} & \textbf{Гибридная схема} \\
+% \hline
+% \raggedright
+% -- размазывает разрыв & -- разрыв остаётся крутым \\
+% -- требуется несколько проходов & -- два вычисления потоков \\
+% -- устойчива & -- зависит от задачи \\
+% \end{tabular}
+% \end{frame}
+
+
+%=====================================================
+\begin{frame}{Основные результаты}
+\begin{itemize}
+\item Построено однопараметрическое семейство схем на базе схемы Лакса--Фридрихса с варьируемыми диссипативными свойствами.
+\item Путём коррекции на пятиточечном шаблоне достигнут повышенный порядок аппроксимации.
+\item С помощью СКА получены аналитические выражения множителя перехода и точная граница устойчивости $\nu_{\max}(\sigma)$.
+\item Предложены и реализованы два метода подавления осцилляций: адаптивная искусственная вязкость и гибридная схема с датчиками кривизны.
+% \medskip
+% \item \textbf{Схема сочетает высокую точность на гладких решениях и монотонность вблизи разрывов.}
+\end{itemize}
+\end{frame}
+
+
+%=====================================================
+% Finishing slide
+%=====================================================
+\begin{frame}
+\centering
+\Large
+Спасибо за внимание!
+
+\bigskip
+
+Вопросы?
+\end{frame}
+
+\end{document}
