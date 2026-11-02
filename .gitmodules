@@ -1,0 +1,3 @@
+[submodule "src/tikzplotlib"]
+	path = src/tikzplotlib
+	url = git@github.com:ukolov-ivan/tikzplotlib.git
